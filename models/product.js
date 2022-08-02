@@ -10,8 +10,9 @@ const productSchema = new Schema({
     category: { type: String, required: true },
     image: { type: String, required: true },
     description: { type: String, required: true },
-    creator: { type: String, required: true },
     region: { type: String, required: true },
+    creator: { type: String, required: true },
+    creatorDetails: { type: Object, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -1,3 +1,6 @@
+const joke = require('one-liner-joke');
+
 exports.home = (req, res, next) => {
-    res.json({ message: 'Welcome to PiusKimsey' })
+    const gottenJoke = joke.getRandomJoke();
+    res.json({ message: 'Welcome to PiusKimsey', joke: gottenJoke.body })
 }

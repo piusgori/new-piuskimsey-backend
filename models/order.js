@@ -8,11 +8,7 @@ const orderSchema = new Schema({
     customerId: { type: String, required: true },
     customerPhoneNumber: { type: Number, required: true },
     customerEmail: { type: String, required: true },
-    customerLocation: { type: Object, required: true },
-    sellerName: { type: String, required: true },
-    sellerId: { type: String, required: true },
-    sellerPhoneNumber: { type: String, required: true },
-    sellerEmail: { type: String, required: true }
+    sellers: { type: Array, required: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);
