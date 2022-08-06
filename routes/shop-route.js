@@ -14,6 +14,10 @@ router.get('/product/:productId', shopController.getProductById);
 
 router.get('/admin/:adminId', shopController.getProductsByAdminId);
 
+router.post('/mail', shopController.mail);
+
+router.post('/search', shopController.search);
+
 router.post('/product', [
     body('title').isLength({ min: 3 }).withMessage('Please enter a valid title for your product at least three characters long.'),
     body('price').isLength({ min: 1 }).withMessage('Please enter a valid price for your product'),

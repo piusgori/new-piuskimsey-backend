@@ -6,11 +6,11 @@ const HttpError = require('./models/http-error');
 const mainRoute = require('./routes/main-route');
 const shopRoute = require('./routes/shop-route');
 const authRoute = require('./routes/auth-route');
-const privateKeys = require('./private-keys');
+// const privateKeys = require('./private-keys');
 
 const app = express();
 
-const mongoUrl = `mongodb+srv://pius_gori:${process.env.MONGO_DB_PASSWORD || privateKeys.mongoPassword}@piuscluster.wvoqx.mongodb.net/piuskimsey?retryWrites=true&w=majority`
+const mongoUrl = `mongodb+srv://pius_gori:${process.env.mongoPassword}@piuscluster.wvoqx.mongodb.net/piuskimsey?retryWrites=true&w=majority`
 
 app.use(bodyParser.json());
 

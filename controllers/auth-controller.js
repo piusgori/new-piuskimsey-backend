@@ -8,9 +8,9 @@ const Order = require('../models/order');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const sendgrid = require('nodemailer-sendgrid-transport');
-const privateKeys = require('../private-keys');
+// const privateKeys = require('../private-keys');
 
-const transporter = nodemailer.createTransport(sendgrid({ auth: { api_key: process.env.sendgridKey || privateKeys.sendgridKey } }));
+const transporter = nodemailer.createTransport(sendgrid({ auth: { api_key: process.env.sendgridKey } }));
 
 exports.getUsers = async (req, res, next) => {
     const foundUsers = [];

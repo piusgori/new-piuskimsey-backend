@@ -6,6 +6,71 @@ const Admin = require('../models/admin');
 const User = require('../models/user');
 const Region = require('../models/region');
 const Order = require('../models/order');
+const nodemailer = require('nodemailer');
+const sendgrid = require('nodemailer-sendgrid-transport');
+// const privateKeys = require('../private-keys');
+
+const transporter = nodemailer.createTransport(sendgrid({ auth: { api_key: process.env.sendgridKey } }));
+
+exports.mail = async (req, res, next) => {
+    const { email } = req.body;
+    let products;
+    try {
+        products = await Product.find();
+    } catch (err) {
+        return next(new HttpError('Unable to fetch users or admins'));
+    }
+    let message = `<h2>We welcome you on board and would like to show you some of our latest products</h2>`
+    if(products.length === 0) {
+        message = 'We have not yet added any products to our site! Hold on and enjoy yourself with a joke from the home page';
+    } else if (products.length < 10){
+        for (const k of products) {
+            message+= `<p>${k.title}: KSH ${k.price}</p><br>`;
+        }
+    } else if (products.length > 10){
+        const sortedProducts = products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const firstTen = sortedProducts.filter((prod, index) => index < 10);
+        for(const l of firstTen){
+            message+= `<p>${l.title}: KSH ${l.price}</p><br>`;
+        }
+    }
+    transporter.sendMail(({
+        to: email,
+        from: 'dreefstar@gmail.com',
+        subject: 'We are welcoming you on board',
+        html: `<h1>Hello Buddy</h1>
+        ${message}`
+    }))
+    res.status(200).json({ message: 'E-Mail has been sent' })
+}
+
+exports.search = async (req, res, next) => {
+    const { text } = req.body;
+    let products;
+    let admins;
+    try {
+        products = await Product.find();
+        admins = await Admin.find();
+    } catch (err) {
+        return next(new HttpError('Unable to find products or admins'))
+    }
+    const foundProducts = [];
+    const foundAdmins = [];
+    const regExp = new RegExp(`${text}`, 'i');
+    for (const i of products){
+        const isPresent = regExp.test(i.title);
+        if(isPresent){
+            foundProducts.push({ id: i._id, title: i.title, price: i.price, isDiscount: i.isDiscount, isFinished: i.isFinished, newPrice: i.newPrice, category: i.category, image: i.image, description: i.description, creator: i.creator, region: i.region, creatorDetails: i.creatorDetails, createdAt: i.createdAt });
+        }
+    }
+    for (const b of admins){
+        const isPresent = regExp.test(b.name);
+        if(isPresent){
+            foundAdmins.push({ id: b._id, name: b.name, email: b.email, phoneNumber: b.phoneNumber, products: b.products, createdAt: b.createdAt });
+        }
+    }
+    res.status(200).json({ message: 'Search Results', products: foundProducts, people: foundAdmins })
+}
 
 exports.getProducts = async (req, res, next) => {
     let fetchedProducts = [];
@@ -82,12 +147,12 @@ exports.getProductsByAdminId = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError('Unable to fetch products'))
     }
-    res.status(200).json({ message: "Found admin products", products: receivedProducts })
+    res.status(200).json({ message: "Found admin products", name: foundAdmin.name, products: receivedProducts })
 }
 
 exports.productsPagination = async (req, res, next) => {
     const currentPage = req.query.page || 1;
-    const perPage = 2;
+    const perPage = 5;
     let totalItems;
     let currentProducts = [];
     try {
@@ -347,9 +412,9 @@ exports.addToCart = async (req, res, next) => {
     let foundUser;
     let foundAdmin;
     try {
-        foundUser = await User.findById(personId);
+        foundUser = await User.findByIdAndUpdate(personId, { cart });
         if(!foundUser){
-            foundAdmin = await Admin.findById(personId);
+            foundAdmin = await Admin.findByIdAndUpdate(personId, { cart });
             if(!foundAdmin && !foundUser){
                 return next(new HttpError('The admin does not exist', [{ message: 'Admin does not exist', type: 'admin' }], 404));
             }
@@ -357,22 +422,6 @@ exports.addToCart = async (req, res, next) => {
         }
     } catch (err) {
         return next(new HttpError('Unable to look for admin and user'));
-    }
-
-    if(foundUser){
-        foundUser.cart = cart;
-    } else if(foundAdmin){
-        foundAdmin.cart = cart;
-    }
-
-    try {
-        if(foundUser){
-            await foundUser.save();
-        } else if (foundAdmin){
-            await foundAdmin.save();
-        }
-    } catch (err) {
-        return next(new HttpError('Unable to save the person'))
     }
     res.status(200).json({ message: 'Cart updated successfully', cart: cart });
 }
@@ -384,9 +433,9 @@ exports.createOrder = async (req, res, next) => {
     let foundUser;
     let foundAdmin;
     try {
-        foundUser = await User.findById(personId);
+        foundUser = await User.findByIdAndUpdate(personId, { cart: [] });
         if(!foundUser){
-            foundAdmin = await Admin.findById(personId);
+            foundAdmin = await Admin.findByIdAndUpdate(personId, { cart: [] });
             if(!foundAdmin && !foundUser){
                 return next(new HttpError('The admin does not exist', [{ message: 'Admin does not exist', type: 'admin' }], 404));
             }
@@ -422,7 +471,13 @@ exports.createOrder = async (req, res, next) => {
         }
     } catch (err) {
         return next(new HttpError('Unable to save the person'))
+    }   
+
+    const responses = [];
+    for (const a of order.sellers) {
+        const oneResponse = order.productsOrdered.filter((prod) => prod.creator === a.id);
+        responses.push({ creator: a.id, creatorName: a.name, creatorPhoneNumber: a.phoneNumber, productsOrdered: oneResponse });
     }
 
-    res.status(201).json({ message: 'Order created Successfully', order })
+    res.status(201).json({ message: 'Order created Successfully', responses })
 }
