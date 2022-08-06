@@ -310,7 +310,7 @@ exports.forgotPassword = async (req, res, next) => {
         subject: 'Reset Password',
         html: `
         <h1>Here is your link</h1>
-        <p>Please select this <div style="height: fit-content; width: fit-content; background-color: #e98d15; padding: 10px 24px; border-radius: 15px; cursor: pointer;"><a style="text-decoration: none; color: white;" href="https://piuskimsey/password-reset/${passwordResetToken}">Link</a></div> to set up your new password</p>
+        <p>Please select this <div style="height: fit-content; width: fit-content; background-color: #e98d15; padding: 10px 24px; border-radius: 15px; cursor: pointer;"><a style="text-decoration: none; color: white;" href="https://piuskimsey.xyz/password-reset/${passwordResetToken}">Link</a></div> to set up your new password</p>
         `
     });
     res.status(200).json({ message: 'E-Mail sent successfully', email, id: existingUser ? existingUser._id : existingAdmin._id })
