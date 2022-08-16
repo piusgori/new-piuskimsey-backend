@@ -20,5 +20,5 @@ exports.tinyPesa = async (req, res, next) => {
 }
 
 exports.pesaData = async (req, res, next) => {
-    console.log(req);
+    console.log(req.body);
 }
