@@ -19,7 +19,7 @@ const io = new Server(server, {
     }
 });
 
-const mongoUrl = `mongodb+srv://pius_gori:${process.env.mongoPassword || privateKeys.mongoPassword}@piuscluster.wvoqx.mongodb.net/piuskimsey?retryWrites=true&w=majority`
+const mongoUrl = `mongodb+srv://pius_gori:${process.env.mongoPassword}@piuscluster.wvoqx.mongodb.net/piuskimsey?retryWrites=true&w=majority`
 
 app.use(bodyParser.json());
 
