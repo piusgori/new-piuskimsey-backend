@@ -8,7 +8,7 @@ const HttpError = require('./models/http-error');
 const mainRoute = require('./routes/main-route');
 const shopRoute = require('./routes/shop-route');
 const authRoute = require('./routes/auth-route');
-const privateKeys = require('./private-keys');
+// const privateKeys = require('./private-keys');
 
 const app = express();
 const server = http.createServer(app);
