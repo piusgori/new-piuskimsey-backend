@@ -311,7 +311,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     transporter.sendMail({
         to: email,
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Reset Password',
         html: `
         <h1>Here is your link</h1>
@@ -400,7 +400,7 @@ exports.requestRegionAdd = (req, res, next) => {
     }
     transporter.sendMail({
         to: 'piusgori@gmail.com',
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Request Region Addition',
         html: `
         <h1>A request for you to add a region</h1>
@@ -423,7 +423,7 @@ exports.requestCategoryAdd = (req, res, next) => {
     }
     transporter.sendMail({
         to: 'piusgori@gmail.com',
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Request Category Addition',
         html: `
         <h1>A request for you to add a category</h1>
