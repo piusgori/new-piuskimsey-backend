@@ -36,7 +36,7 @@ exports.mail = async (req, res, next) => {
     }
     transporter.sendMail(({
         to: email,
-        from: 'joskimseyagency@gmail.com',
+        from: 'dreefstar@gmail.com',
         subject: 'We are welcoming you on board',
         html: `<h1>Hello Buddy</h1>
         ${message}`
