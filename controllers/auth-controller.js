@@ -6,11 +6,13 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const Order = require('../models/order');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const nodemailer = require('nodemailer');
 const sendgrid = require('nodemailer-sendgrid-transport');
 // const privateKeys = require('../private-keys');
 
 const transporter = nodemailer.createTransport(sendgrid({ auth: { api_key: process.env.sendgridKey } }));
+const tinypesaKey = process.env.tinypesaKey;
 
 exports.getUsers = async (req, res, next) => {
     const foundUsers = [];
@@ -36,7 +38,7 @@ exports.getAdmins = async (req, res, next) => {
             return next(new HttpError('Unable to fetch the admins'));
         }
         for (const b of admins){
-            foundAdmins.push({ id: b._id, name: b.name, email: b.email, phoneNumber: b.phoneNumber, products: b.products, createdAt: b.createdAt });
+            foundAdmins.push({ id: b._id, name: b.name, email: b.email, phoneNumber: b.phoneNumber, products: b.products, createdAt: b.createdAt, subscription: b.subscription });
         }
     } catch (err) {
         return next(new HttpError('An unexpected error occured'));
@@ -196,7 +198,8 @@ exports.login = async (req, res, next) => {
         products: foundUser ? null : foundAdmin.products,
         orders: foundOrders,
         token: token,
-        isAdmin: foundUser ? false : true
+        isAdmin: foundUser ? false : true,
+        subscription: foundUser ? null : foundAdmin.subscription 
     }
     res.status(200).json({ message: 'Logged in Successfully', ...responseBody })
 }
@@ -204,7 +207,8 @@ exports.login = async (req, res, next) => {
 exports.upgradeToAdmin = async (req, res, next) => {
     const userId = req.params.userId.trim();
     let foundUser;
-    let newAdmin
+    let newAdmin;
+    const now = new Date().toISOString();
     try {
         foundUser = await User.findById(userId);
         if(!foundUser){
@@ -212,7 +216,7 @@ exports.upgradeToAdmin = async (req, res, next) => {
             const type = 'Not Found';
             return next(new HttpError('Unable to process user', [{ message,  type }], 404))
         }
-        newAdmin = new Admin({ name: foundUser.name, email: foundUser.email, password: foundUser.password, phoneNumber: foundUser.phoneNumber, region: foundUser.region, cart: foundUser.cart, orders: foundUser.orders, products: [] });
+        newAdmin = new Admin({ name: foundUser.name, email: foundUser.email, password: foundUser.password, phoneNumber: foundUser.phoneNumber, region: foundUser.region, cart: foundUser.cart, orders: foundUser.orders, products: [], subscription: now });
     } catch (err) {
         return next(new HttpError('Unable to look for the user'));
     }
@@ -247,6 +251,7 @@ exports.upgradeToAdmin = async (req, res, next) => {
         products: newAdmin.products,
         orders: newAdmin.orders,
         token: token,
+        subscription: now,
         isAdmin: true
     }
     res.status(201).json({ message: 'User Upgraded successfully', ...responseBody })
@@ -306,7 +311,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     transporter.sendMail({
         to: email,
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Reset Password',
         html: `
         <h1>Here is your link</h1>
@@ -395,7 +400,7 @@ exports.requestRegionAdd = (req, res, next) => {
     }
     transporter.sendMail({
         to: 'piusgori@gmail.com',
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Request Region Addition',
         html: `
         <h1>A request for you to add a region</h1>
@@ -418,7 +423,7 @@ exports.requestCategoryAdd = (req, res, next) => {
     }
     transporter.sendMail({
         to: 'piusgori@gmail.com',
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'Request Category Addition',
         html: `
         <h1>A request for you to add a category</h1>
@@ -426,4 +431,45 @@ exports.requestCategoryAdd = (req, res, next) => {
         `
     });
     res.status(200).json({ message: 'Category request has been sent successfully' })
+}
+
+exports.upgradeAdmin = async (req, res, next) => {
+    const adminId = req.params.adminId.trim();
+    let foundAdmin;
+    try {
+        foundAdmin = await Admin.findById(adminId);
+        if(!foundAdmin){
+            return next(new HttpError('No admin found', [{ message: 'Admin not found', type: 'admin' }], 404));
+        }
+
+    } catch (err) {
+        return next(new HttpError('Unable to get the admin'));
+    }
+
+    try {
+        const data = { amount: 1, msisdn: Number(foundAdmin.phoneNumber) };
+        const config = { headers: { Apikey: tinypesaKey } }
+        const response = await axios.post('https://tinypesa.com/api/v1/express/initialize', data, config);
+    } catch (err) {
+        return next(new HttpError('Unable to push MPesa SDK'));
+    }
+
+    res.status(200).json({ message: 'Successfully sent SDK to admin' });
+}
+
+exports.checkTransaction = async (req, res, next) => {
+    const { Msisdn, Amount, ResultDesc, ResultCode } = req.body.Body.stkCallback;
+    if(ResultCode !== 0 || ResultDesc !== 'The service request is processed successfully.'){
+        return next(new HttpError('Unable to process payment', [{ message: ResultDesc, type: 'payment' }], 403));
+    }
+    const now = new Date().getTime();
+    const thirtyDays = now + (1000 * 60 * 60 * 24 * 30);
+    const thirtyDaysDate = new Date(thirtyDays).toISOString();
+    let foundAdmin;
+    try {
+        foundAdmin = await Admin.findOneAndUpdate({ phoneNumber: Msisdn }, { subscription: thirtyDaysDate });
+    } catch (err) {
+        return next(new HttpError('Unable to update admin'));
+    }
+    res.status(200).json({ message: 'Subscription updated successfully', subscription: thirtyDaysDate })
 }

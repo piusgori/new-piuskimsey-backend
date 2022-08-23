@@ -36,7 +36,7 @@ exports.mail = async (req, res, next) => {
     }
     transporter.sendMail(({
         to: email,
-        from: 'dreefstar@gmail.com',
+        from: 'joskimseyagency@gmail.com',
         subject: 'We are welcoming you on board',
         html: `<h1>Hello Buddy</h1>
         ${message}`
@@ -60,7 +60,7 @@ exports.search = async (req, res, next) => {
     for (const i of products){
         const isPresent = regExp.test(i.title);
         if(isPresent){
-            foundProducts.push({ id: i._id, title: i.title, price: i.price, isDiscount: i.isDiscount, isFinished: i.isFinished, newPrice: i.newPrice, category: i.category, image: i.image, description: i.description, creator: i.creator, region: i.region, creatorDetails: i.creatorDetails, createdAt: i.createdAt });
+            foundProducts.push({ id: i._id, title: i.title, price: i.price, isDiscount: i.isDiscount, isFinished: i.isFinished, newPrice: i.newPrice, category: i.category, image: i.image, description: i.description, creator: i.creator, creatorSubscription: i.creatorSubscription, region: i.region, creatorDetails: i.creatorDetails, createdAt: i.createdAt });
         }
     }
     for (const b of admins){
@@ -80,7 +80,7 @@ exports.getProducts = async (req, res, next) => {
             return next(new HttpError('We were unable to fetch the products'));
         }
         for (const a of products){
-            fetchedProducts.push({ id: a._id, title: a.title, price: a.price, isDiscount: a.isDiscount, isFinished: a.isFinished, newPrice: a.newPrice, category: a.category, image: a.image, description: a.description, creator: a.creator, region: a.region, creatorDetails: a.creatorDetails, createdAt: a.createdAt });
+            fetchedProducts.push({ id: a._id, title: a.title, price: a.price, isDiscount: a.isDiscount, isFinished: a.isFinished, newPrice: a.newPrice, category: a.category, image: a.image, description: a.description, creator: a.creator, creatorSubscription: a.creatorSubscription, region: a.region, creatorDetails: a.creatorDetails, createdAt: a.createdAt });
         }
     } catch (err) {
         return next(new HttpError('An unexpected error occurred'));
@@ -117,7 +117,7 @@ exports.getProductById = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError('Unable to find product'));
     }
-    res.status(200).json({ message: 'Found the product', id: foundProduct._id, title: foundProduct.title, price: foundProduct.price, isDiscount: foundProduct.isDiscount, isFinished: foundProduct.isFinished, newPrice: foundProduct.newPrice, category: foundProduct.category, image: foundProduct.image, description: foundProduct.description, region: foundProduct.region, creator: foundProduct.creator, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt })
+    res.status(200).json({ message: 'Found the product', id: foundProduct._id, title: foundProduct.title, price: foundProduct.price, isDiscount: foundProduct.isDiscount, isFinished: foundProduct.isFinished, newPrice: foundProduct.newPrice, category: foundProduct.category, image: foundProduct.image, description: foundProduct.description, region: foundProduct.region, creator: foundProduct.creator, creatorSubscription: foundProduct.creatorSubscription, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt })
 }
 
 exports.getProductsByAdminId = async (req, res, next) => {
@@ -142,7 +142,7 @@ exports.getProductsByAdminId = async (req, res, next) => {
             return next(new HttpError('Unable to get the products for this admin'));
         }
         for (const k of foundProducts){
-            receivedProducts.push({ id: k._id, title: k.title, price: k.price, isDiscount: k.isDiscount, isFinished: k.isFinished, newPrice: k.newPrice, category: k.category, image: k.image, description: k.description, region: k.region, creator: k.creator, creatorDetails: k.creatorDetails, createdAt: k.createdAt })
+            receivedProducts.push({ id: k._id, title: k.title, price: k.price, isDiscount: k.isDiscount, isFinished: k.isFinished, newPrice: k.newPrice, category: k.category, image: k.image, description: k.description, region: k.region, creator: k.creator, creatorSubscription: k.creatorSubscription, creatorDetails: k.creatorDetails, createdAt: k.createdAt })
         }
     } catch (err) {
         return next(new HttpError('Unable to fetch products'))
@@ -159,7 +159,7 @@ exports.productsPagination = async (req, res, next) => {
         totalItems = await Product.find().countDocuments();
         const pageProducts = await Product.find().skip((currentPage - 1) * perPage).limit(perPage);
         for (const a of pageProducts){
-            currentProducts.push({ id: a._id, title: a.title, price: a.price, isDiscount: a.isDiscount, isFinished: a.isFinished, newPrice: a.newPrice, category: a.category, image: a.image, description: a.description, creator: a.creator, region: a.region, creatorDetails: a.creatorDetails, createdAt: a.createdAt });
+            currentProducts.push({ id: a._id, title: a.title, price: a.price, isDiscount: a.isDiscount, isFinished: a.isFinished, newPrice: a.newPrice, category: a.category, image: a.image, description: a.description, creator: a.creator, creatorSubscription: a.creatorSubscription, region: a.region, creatorDetails: a.creatorDetails, createdAt: a.createdAt });
         }
     } catch (err) {
         return next(new HttpError('Unable to get the products for this page'));
@@ -197,7 +197,7 @@ exports.createProduct = async (req, res, next) => {
         return next(new HttpError('The product has already been added', [{ message, type }], 403))
     }
 
-    const newProduct = new Product({ title, price: Number(price), isDiscount: false, isFinished: false, newPrice: 0, category, image: 'Yet to be added', description, region: foundAdmin.region, creator: foundAdmin._id, creatorDetails: { name: foundAdmin.name, email: foundAdmin.email, phoneNumber: foundAdmin.phoneNumber } });
+    const newProduct = new Product({ title, price: Number(price), isDiscount: false, isFinished: false, newPrice: 0, category, image: 'Yet to be added', description, region: foundAdmin.region, creator: foundAdmin._id, creatorSubscription: foundAdmin.subscription, creatorDetails: { name: foundAdmin.name, email: foundAdmin.email, phoneNumber: foundAdmin.phoneNumber } });
 
     try {
         await newProduct.save();
@@ -205,7 +205,7 @@ exports.createProduct = async (req, res, next) => {
         return next(new HttpError('Unable to create the product'));
     }
 
-    const adminUpdatedProducts = [...foundAdmin.products, { id: newProduct._id, title: newProduct.title, price: newProduct.price, isDiscount: newProduct.isDiscount, isFinished: newProduct.isFinished, newPrice: newProduct.newPrice, category: newProduct.category, image: newProduct.image, description: newProduct.description, region: newProduct.region, creator: newProduct.creator, creatorDetails: newProduct.creatorDetails, createdAt: newProduct.createdAt }];
+    const adminUpdatedProducts = [...foundAdmin.products, { id: newProduct._id, title: newProduct.title, price: newProduct.price, isDiscount: newProduct.isDiscount, isFinished: newProduct.isFinished, newPrice: newProduct.newPrice, category: newProduct.category, image: newProduct.image, description: newProduct.description, region: newProduct.region, creator: newProduct.creator, creatorSubscription: newProduct.creatorSubscription, creatorDetails: newProduct.creatorDetails, createdAt: newProduct.createdAt }];
     foundAdmin.products = adminUpdatedProducts;
 
     try {
@@ -214,7 +214,7 @@ exports.createProduct = async (req, res, next) => {
         return next(new HttpError('Unable to save the admin'));
     }
 
-    res.status(201).json({ message: 'Product created successfully', id: newProduct._id, title: newProduct.title, price: newProduct.price, isDiscount: newProduct.isDiscount, isFinished: newProduct.isFinished, newPrice: newProduct.newPrice, category: newProduct.category, image: newProduct.image, description: newProduct.description, region: newProduct.region, creator: newProduct.creator, creatorDetails: newProduct.creatorDetails, createdAt: newProduct.createdAt })
+    res.status(201).json({ message: 'Product created successfully', id: newProduct._id, title: newProduct.title, price: newProduct.price, isDiscount: newProduct.isDiscount, isFinished: newProduct.isFinished, newPrice: newProduct.newPrice, category: newProduct.category, image: newProduct.image, description: newProduct.description, region: newProduct.region, creator: newProduct.creator, creatorSubscription: newProduct.creatorSubscription, creatorDetails: newProduct.creatorDetails, createdAt: newProduct.createdAt })
 }
 
 exports.addImage = async (req, res, next) => {
@@ -280,7 +280,7 @@ exports.addImage = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError('Unable to update the products of this admin'));
     }
-    res.status(200).json({ message: 'Image added successfully', id: foundProduct._id, title: foundProduct.title, price: foundProduct.price, isDiscount: foundProduct.isDiscount, isFinished: foundProduct.isFinished, newPrice: foundProduct.newPrice, category: foundProduct.category, image: foundProduct.image, description: foundProduct.description, region: foundProduct.region, creator: foundProduct.creator, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt });
+    res.status(200).json({ message: 'Image added successfully', id: foundProduct._id, title: foundProduct.title, price: foundProduct.price, isDiscount: foundProduct.isDiscount, isFinished: foundProduct.isFinished, newPrice: foundProduct.newPrice, category: foundProduct.category, image: foundProduct.image, description: foundProduct.description, region: foundProduct.region, creator: foundProduct.creator, creatorSubscription: foundProduct.creatorSubscription, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt });
 }
  
 exports.createCategory = async (req, res, next) => {
@@ -386,7 +386,7 @@ exports.editProduct = async (req, res, next) => {
         return next(new HttpError('Unable to save edited product'))
     }
 
-    res.status(200).json({ message: 'Product edited successfully', id: productId, title, price: foundProduct.price, isDiscount, isFinished, newPrice, category: foundProduct.category, image: foundProduct.image, description, region: foundProduct.region, creator: foundProduct.creator, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt })
+    res.status(200).json({ message: 'Product edited successfully', id: productId, title, price: foundProduct.price, isDiscount, isFinished, newPrice, category: foundProduct.category, image: foundProduct.image, description, region: foundProduct.region, creator: foundProduct.creator, creatorSubscription: foundProduct.creatorSubscription, creatorDetails: foundProduct.creatorDetails, createdAt: foundProduct.createdAt })
 
 }
 

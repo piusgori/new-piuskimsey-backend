@@ -38,7 +38,11 @@ router.post('/request/region', [
 router.post('/request/category', [
     body('email').normalizeEmail().isEmail().withMessage('Please enter a valid E-Mail address'),
     body('category').isLength({ min: 3 }).withMessage('Please enter a valid nave for a region, at least three characters')
-], authController.requestCategoryAdd)
+], authController.requestCategoryAdd);
+
+router.get('/admin/subscribe/:adminId', authController.upgradeAdmin);
+
+router.post('/admin/subcribe/check', authController.checkTransaction);
 
 
 module.exports = router;

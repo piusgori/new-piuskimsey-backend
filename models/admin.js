@@ -10,6 +10,7 @@ const adminSchema = new Schema({
     region: { type: String, required: true },
     cart: { type: Array, required: true },
     orders: { type: Array, required: true },
+    subscription: { type: String, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Admin', adminSchema);

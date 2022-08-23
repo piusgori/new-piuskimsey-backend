@@ -12,6 +12,7 @@ const productSchema = new Schema({
     description: { type: String, required: true },
     region: { type: String, required: true },
     creator: { type: String, required: true },
+    creatorSubscription: { type: String, required: true },
     creatorDetails: { type: Object, required: true },
 }, { timestamps: true });
 
