@@ -463,7 +463,8 @@ exports.checkTransaction = async (req, res, next) => {
         return next(new HttpError('Unable to process payment', [{ message: ResultDesc, type: 'payment' }], 403));
     }
     const now = new Date().getTime();
-    const thirtyDays = now + (1000 * 60 * 60 * 24 * 30);
+    // const thirtyDays = now + (1000 * 60 * 60 * 24 * 30);
+    const thirtyDays = now + (1000 * 60 * 3);
     const thirtyDaysDate = new Date(thirtyDays).toISOString();
     let foundAdmin;
     try {

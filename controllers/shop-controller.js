@@ -190,6 +190,13 @@ exports.createProduct = async (req, res, next) => {
         return next(new HttpError('Unable to look for an admin'));
     }
 
+    const now = new Date().getTime();
+    const mySubscription = new Date(foundAdmin.subscription).getTime();
+
+    if(now >= mySubscription){
+        return next(new HttpError('Unable to create Product', [{ message: 'Your Subscription has expired', type: 'subscription' }], 403))
+    }
+
     const productAlreadyAdded = foundAdmin.products.find(prod => prod.title === title);
     if(productAlreadyAdded){
         const message = 'The product has already been added';
@@ -361,6 +368,12 @@ exports.editProduct = async (req, res, next) => {
         }
     } catch (err) {
         return next(new HttpError('Unable to get admin'));
+    }
+
+    const now = new Date().getTime();
+    const mySubscription = new Date(foundAdmin.subscription).getTime();
+    if(now >= mySubscription){
+        return next(new HttpError('Unable to create Product', [{ message: 'Your Subscription has expired', type: 'subscription' }], 403))
     }
 
     let foundProduct;
