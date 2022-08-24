@@ -208,7 +208,9 @@ exports.upgradeToAdmin = async (req, res, next) => {
     const userId = req.params.userId.trim();
     let foundUser;
     let newAdmin;
-    const now = new Date().toISOString();
+    const subAdded = (new Date().getTime()) + (1000 * 60 * 60 * 24 * 30);
+    const now = new Date(subAdded).toISOString();
+    // const now = new Date().toISOString();
     try {
         foundUser = await User.findById(userId);
         if(!foundUser){
@@ -447,7 +449,7 @@ exports.upgradeAdmin = async (req, res, next) => {
     }
 
     try {
-        const data = { amount: 1, msisdn: Number(foundAdmin.phoneNumber) };
+        const data = { amount: 50, msisdn: Number(foundAdmin.phoneNumber) };
         const config = { headers: { Apikey: tinypesaKey } }
         const response = await axios.post('https://tinypesa.com/api/v1/express/initialize', data, config);
     } catch (err) {
@@ -463,8 +465,8 @@ exports.checkTransaction = async (req, res, next) => {
         return next(new HttpError('Unable to process payment', [{ message: ResultDesc, type: 'payment' }], 403));
     }
     const now = new Date().getTime();
-    // const thirtyDays = now + (1000 * 60 * 60 * 24 * 30);
-    const thirtyDays = now + (1000 * 60 * 3);
+    const thirtyDays = now + (1000 * 60 * 60 * 24 * 30);
+    // const thirtyDays = now + (1000 * 60 * 3);
     const thirtyDaysDate = new Date(thirtyDays).toISOString();
     let foundAdmin;
     try {
