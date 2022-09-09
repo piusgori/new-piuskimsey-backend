@@ -208,8 +208,8 @@ exports.upgradeToAdmin = async (req, res, next) => {
     const userId = req.params.userId.trim();
     let foundUser;
     let newAdmin;
-    const subAdded = (new Date().getTime()) + (1000 * 60 * 60 * 24 * 30);
-    const now = new Date(subAdded).toISOString();
+    const subSubtracted = (new Date().getTime()) - (1000 * 60);
+    const now = new Date(subSubtracted).toISOString();
     // const now = new Date().toISOString();
     try {
         foundUser = await User.findById(userId);
@@ -449,7 +449,7 @@ exports.upgradeAdmin = async (req, res, next) => {
     }
 
     try {
-        const data = { amount: 50, msisdn: Number(foundAdmin.phoneNumber) };
+        const data = { amount: 100, msisdn: Number(foundAdmin.phoneNumber) };
         const config = { headers: { Apikey: tinypesaKey } }
         const response = await axios.post('https://tinypesa.com/api/v1/express/initialize', data, config);
     } catch (err) {
