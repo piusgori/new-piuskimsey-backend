@@ -7,7 +7,7 @@ exports.home = (req, res, next) => {
 
 exports.results = (req, res, next) => {
     console.log('before');
-    console.log(req.body);
+    console.log(req.body.Body.stkCallback.CallbackMetadata);
     console.log('after');
     res.json({ message: 'Success' });
 }
